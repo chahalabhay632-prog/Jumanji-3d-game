@@ -1,0 +1,123 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Temple Run Style Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0f1724;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: linear-gradient(#111827, #020617);
+    }
+    #info {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">Tap / Space = Jump</div>
+  <canvas id="game" width="360" height="640"></canvas>  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+
+    let gravity = 0.6;
+    let speed = 4;
+    let score = 0;
+    let gameOver = false;
+
+    const player = {
+      x: 50,
+      y: 520,
+      w: 40,
+      h: 40,
+      vy: 0,
+      jump() {
+        if (this.y >= 520) {
+          this.vy = -12;
+        }
+      }
+    };
+
+    let obstacles = [];
+
+    function spawnObstacle() {
+      obstacles.push({
+        x: canvas.width,
+        y: 540,
+        w: 30,
+        h: 60
+      });
+    }
+
+    function resetGame() {
+      score = 0;
+      speed = 4;
+      obstacles = [];
+      player.y = 520;
+      player.vy = 0;
+      gameOver = false;
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      // Player physics
+      player.vy += gravity;
+      player.y += player.vy;
+      if (player.y > 520) player.y = 520;
+
+      // Obstacles
+      obstacles.forEach(o => o.x -= speed);
+      obstacles = obstacles.filter(o => o.x + o.w > 0);
+
+      // Collision
+      obstacles.forEach(o => {
+        if (
+          player.x < o.x + o.w &&
+          player.x + player.w > o.x &&
+          player.y < o.y + o.h &&
+          player.y + player.h > o.y
+        ) {
+          gameOver = true;
+        }
+      });
+
+      score++;
+      speed += 0.0005;
+
+      if (Math.random() < 0.02) spawnObstacle();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Ground
+      ctx.fillStyle = '#334155';
+      ctx.fillRect(0, 580, canvas.width, 60);
+
+      // Player
+      ctx.fillStyle = '#22d3ee';
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+
+      // Obstacles
+      ctx.fillStyle = '#ef4444';
+      obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
+
+      // Score
+      ctx.fillStyle = 'white';
+      ctx.fillText('Score: ' + score, 10, 20);
+
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0
